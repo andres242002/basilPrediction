@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Albahaca Saludable</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Clasificador de Albahaca</h1>
+        <p>Sube 3 fotos de tus plantas de albahaca o toma las fotos si estás en un dispositivo móvil.</p>
+
+        <form id="photo-form">
+            <input type="file" id="photo1" accept="image/*" capture="camera" required>
+            <input type="file" id="photo2" accept="image/*" capture="camera" required>
+            <input type="file" id="photo3" accept="image/*" capture="camera" required>
+            <button type="submit">Enviar Fotos</button>
+        </form>
+
+        <div id="response"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
+
+
+
+
