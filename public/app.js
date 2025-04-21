@@ -90,33 +90,70 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingSpinner.style.display = 'block';
         submitBtn.disabled = true;
         
+        // Limpiar contenedor de respuesta anterior
+        responseContainer.innerHTML = '';
+        responseContainer.className = 'response-container active';
+        
+        // Resultados acumulados
+        const results = [];
+        
         try {
-            // Comprimir imágenes antes de enviar
-            const compressedFiles = await Promise.all(
-                Array.from(fileInputs).map(input => compressImage(input.files[0]))
-            );
+            // Procesar cada imagen por separado
+            for (let i = 0; i < fileInputs.length; i++) {
+                const fileInput = fileInputs[i];
+                const file = fileInput.files[0];
+                
+                // Comprimir la imagen actual
+                const compressedFile = await compressImage(file);
+                
+                // Crear FormData para esta imagen específica
+                const formData = new FormData();
+                formData.append("file", compressedFile, "imagen.jpg");
+                
+                // Mostrar que estamos procesando esta imagen específica
+                responseContainer.innerHTML += `<p>Procesando imagen ${i + 1}...</p>`;
+                
+                // Enviar al servidor
+                const response = await fetch('http://localhost:8000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                // Procesar respuesta individual
+                const result = await response.json();
+                results.push(result);
+                
+                // Mostrar el resultado parcial
+                const detection = result.detections[0];
+                const isHealthy = detection.label === "Healthy";
+                const confidence = (detection.confidence * 100).toFixed(1);
+                
+                responseContainer.innerHTML += `
+                    <div class="image-result ${isHealthy ? 'healthy' : 'unhealthy'}">
+                        <h3>Imagen ${i + 1}: ${detection.label}</h3>
+                        <p>Confianza: ${confidence}%</p>
+                        ${result.image_base64 ? `<img src="data:image/jpeg;base64,${result.image_base64}" alt="Imagen analizada ${i+1}" class="result-image">` : ''}
+                    </div>
+                `;
+            }
             
-            // Crear FormData con las imágenes comprimidas
-            const formData = new FormData();
-            compressedFiles.forEach((file, index) => {
-                formData.append(`photo${index + 1}`, file, `photo${index + 1}.jpg`);
-            });
+            // Analizar resultados para obtener conclusión general
+            const totalHealthy = results.filter(result => 
+                result.detections[0].label === "Healthy"
+            ).length;
             
-            // Enviar al servidor
-            const response = await fetch('http://localhost:3000/upload', {
-                method: 'POST',
-                body: formData
-            });
+            const isGenerallyHealthy = totalHealthy >= 2; // Si al menos 2 de 3 son saludables
             
-            // Procesar respuesta
-            const result = await response.json();
-            
-            // Mostrar resultado
-            responseContainer.className = 'response-container active response-success';
-            responseContainer.innerHTML = `
-                <p><strong>Resultado:</strong> ${result.message}</p>
-                <p>El análisis indica que tu planta de albahaca está ${result.healthy ? 'saludable' : 'no saludable'}.</p>
-                ${result.recommendations ? `<p><strong>Recomendaciones:</strong> ${result.recommendations}</p>` : ''}
+            // Mostrar conclusión general
+            responseContainer.innerHTML += `
+                <div class="conclusion ${isGenerallyHealthy ? 'response-success' : 'response-error'}">
+                    <h3>Conclusión:</h3>
+                    <p>El análisis indica que tu planta de albahaca está ${isGenerallyHealthy ? 'mayormente saludable' : 'posiblemente enferma'}.</p>
+                    ${isGenerallyHealthy 
+                        ? '<p><strong>Recomendaciones:</strong> Continúa con tu rutina actual de cuidados.</p>' 
+                        : '<p><strong>Recomendaciones:</strong> Revisa el riego, la exposición solar y asegúrate de que no tenga plagas. Considera aplicar un tratamiento orgánico preventivo.</p>'
+                    }
+                </div>
             `;
             
         } catch (error) {
@@ -126,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
             responseContainer.innerHTML = `
                 <p><strong>Error:</strong> No se pudieron procesar las fotos.</p>
                 <p>Por favor, intenta de nuevo o verifica tu conexión a internet.</p>
+                <p>Detalles técnicos: ${error.message}</p>
             `;
         } finally {
             // Ocultar spinner de carga
