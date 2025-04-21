@@ -106,22 +106,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Comprimir la imagen actual
                 const compressedFile = await compressImage(file);
                 
-                // Crear FormData para esta imagen específica
+                // Crear FormData para esta imagen específica - EXACTAMENTE como en Python
                 const formData = new FormData();
                 formData.append("file", compressedFile, "imagen.jpg");
                 
                 // Mostrar que estamos procesando esta imagen específica
                 responseContainer.innerHTML += `<p>Procesando imagen ${i + 1}...</p>`;
                 
-                // Enviar al servidor
+                // Diagnósticos para debugging
+                console.log(`Enviando imagen ${i + 1}, tamaño: ${compressedFile.size} bytes`);
+                
+                // Enviar al servidor - MODIFICADO para coincidir con Python
                 const response = await fetch('http://localhost:8000/predict', {
                     method: 'POST',
-                    body: formData
+                    // No establecemos headers, dejamos que se configuren automáticamente como en Python
+                    // El boundary del multipart/form-data será establecido automáticamente
+                    body: formData,
+                    // Añadimos estas opciones para manejo de CORS
+                    mode: 'cors',
+                    credentials: 'same-origin'
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status} - ${await response.text()}`);
+                }
                 
                 // Procesar respuesta individual
                 const result = await response.json();
                 results.push(result);
+                
+                console.log("Respuesta recibida:", result);
                 
                 // Mostrar el resultado parcial
                 const detection = result.detections[0];
@@ -158,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Error:', error);
-            // Mostrar error
+            // Mostrar error con detalles
             responseContainer.className = 'response-container active response-error';
             responseContainer.innerHTML = `
                 <p><strong>Error:</strong> No se pudieron procesar las fotos.</p>
