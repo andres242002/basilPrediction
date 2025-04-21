@@ -224,7 +224,7 @@ button:disabled {
     padding: 20px;
     border-radius: var(--border-radius);
     transition: all 0.3s ease;
-    overflow: visible; /* <- esto es importante */
+    /*overflow: visible;  <- esto es importante */
     max-height: none;  /* <- asegúrate que esto esté presente */
 }
 
@@ -334,14 +334,6 @@ button:disabled {
     padding: 20px;
     border-radius: var(--border-radius);
     font-weight: 500;
-}
-
-.response-container {
-    max-height: none;
-}
-
-.response-container.active {
-    padding: 20px;
 }
 
 .slider-container {
