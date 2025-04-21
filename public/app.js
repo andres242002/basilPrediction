@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log(`Enviando imagen ${i + 1}, tamaño: ${compressedFile.size} bytes`);
                 
                 // Enviar al servidor - MODIFICADO para coincidir con Python
-                const response = await fetch('http://basilprediction:8000/predict', {
+                const response = await fetch('https://basilprediction.ddns.net/predict', {
                     method: 'POST',
                     // No establecemos headers, dejamos que se configuren automáticamente como en Python
                     // El boundary del multipart/form-data será establecido automáticamente
