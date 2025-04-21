@@ -24,10 +24,20 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd
-            cd basilprediction/
-            git pull origin main
-            npm install
-            pm2 restart web
-          EOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
+          set -e  # Detiene el script si algo falla
+
+          cd ~/basilPrediction || {
+            echo "❌ La carpeta basilPrediction no existe"; exit 1;
+          }
+
+          echo "📥 Haciendo pull del repositorio..."
+          git pull origin main
+
+          echo "📦 Instalando dependencias..."
+          npm install
+
+          echo "🔁 Reiniciando PM2..."
+          pm2 restart web
+
+          echo "✅ Despliegue completo"
