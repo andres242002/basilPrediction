@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             // Procesar cada imagen por separado
             let responseHtml = '';
+            let slidesHtml = '';
 
             for (let i = 0; i < fileInputs.length; i++) {
                 const fileInput = fileInputs[i];
@@ -129,8 +130,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const isHealthy = detection.label === "Healthy";
                 const confidence = (detection.confidence * 100).toFixed(1);
 
-                responseHtml += `
-        <div class="image-result ${isHealthy ? 'healthy' : 'unhealthy'}">
+                slidesHtml += `
+        <div class="slide ${isHealthy ? 'healthy' : 'unhealthy'}">
             <h3>Imagen ${i + 1}: ${detection.label}</h3>
             <p>Confianza: ${confidence}%</p>
             ${result.image_base64
@@ -140,6 +141,12 @@ document.addEventListener('DOMContentLoaded', function () {
     `;
             }
 
+            responseHtml = `
+            <div class="slider-container">
+                ${slidesHtml}
+            </div>
+            `;
+
             const totalHealthy = results.filter(result =>
                 result.detections[0].label === "Healthy"
             ).length;
@@ -147,15 +154,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const isGenerallyHealthy = totalHealthy >= 2;
 
             responseHtml += `
-                <div class="conclusion ${isGenerallyHealthy ? 'response-success' : 'response-error'}">
-                    <h3>Conclusión:</h3>
-                    <p>El análisis indica que tu planta de albahaca está ${isGenerallyHealthy ? 'mayormente saludable' : 'posiblemente enferma'}.</p>
-                    ${isGenerallyHealthy
-                    ? '<p><strong>Recomendaciones:</strong> Continúa con tu rutina actual de cuidados.</p>'
-                    : '<p><strong>Recomendaciones:</strong> Revisa el riego, la exposición solar y asegúrate de que no tenga plagas. Considera aplicar un tratamiento orgánico preventivo.</p>'
-                }
-                </div>
-            `;
+    <div class="conclusion ${isGenerallyHealthy ? 'response-success' : 'response-error'}">
+        <h3>Conclusión:</h3>
+        <p>El análisis indica que tu planta de albahaca está ${isGenerallyHealthy ? 'mayormente saludable' : 'posiblemente enferma'}.</p>
+        ${isGenerallyHealthy 
+            ? '<p><strong>Recomendaciones:</strong> Continúa con tu rutina actual de cuidados.</p>' 
+            : '<p><strong>Recomendaciones:</strong> Revisa el riego, la exposición solar y asegúrate de que no tenga plagas. Considera aplicar un tratamiento orgánico preventivo.</p>'
+        }
+    </div>
+`;
+
+responseContainer.innerHTML = responseHtml;
 
             // Finalmente, mostrar todo de una vez
             responseContainer.innerHTML = responseHtml;
