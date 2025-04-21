@@ -25,7 +25,8 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/basilprediction
+            cd
+            cd basilprediction/
             git pull origin main
             npm install
             pm2 restart web
