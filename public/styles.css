@@ -221,11 +221,13 @@ button:disabled {
 /* Contenedor de respuesta */
 .response-container {
     margin-top: 25px;
-    padding: 0;
+    padding: 20px;
+    border-radius: var(--border-radius);
     transition: all 0.3s ease;
-    overflow: hidden;
-    max-height: 0;
+    overflow: visible; /* <- esto es importante */
+    max-height: none;  /* <- asegúrate que esto esté presente */
 }
+
 
 .response-container.active {
     padding: 20px;
