@@ -1,20 +1,215 @@
-document.getElementById('photo-form').addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const formData = new FormData();
-    formData.append('photo1', document.getElementById('photo1').files[0]);
-    formData.append('photo2', document.getElementById('photo2').files[0]);
-    formData.append('photo3', document.getElementById('photo3').files[0]);
-
-    try {
-        const response = await fetch('http://localhost:3000/upload', {
-            method: 'POST',
-            body: formData
+document.addEventListener('DOMContentLoaded', function() {
+    // Referencias a elementos DOM
+    const photoForm = document.getElementById('photo-form');
+    const fileInputs = document.querySelectorAll('.file-input');
+    const useCameraCheckbox = document.getElementById('use-camera');
+    const submitBtn = document.getElementById('submit-btn');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const responseContainer = document.getElementById('response');
+    
+    // Configuración de la opción de cámara para dispositivos móviles
+    useCameraCheckbox.addEventListener('change', function() {
+        fileInputs.forEach(input => {
+            if (this.checked) {
+                input.setAttribute('capture', 'camera');
+            } else {
+                input.removeAttribute('capture');
+            }
         });
-
-        const result = await response.json();
-        document.getElementById('response').innerHTML = `<p><strong>Resultado:</strong> ${result.message}</p>`;
-    } catch (error) {
-        document.getElementById('response').innerHTML = `<p>Error al procesar las fotos.</p>`;
+    });
+    
+    // Detección de dispositivo móvil
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Mostrar opción de cámara solo en dispositivos móviles
+    if (!isMobile) {
+        document.querySelector('.capture-option').style.display = 'none';
+        fileInputs.forEach(input => input.removeAttribute('capture'));
+    }
+    
+    // Manejo de vista previa de imágenes
+    fileInputs.forEach((input, index) => {
+        const previewId = `preview-${index + 1}`;
+        const fileInfoId = `file-info-${index + 1}`;
+        const preview = document.getElementById(previewId);
+        const fileInfo = document.getElementById(fileInfoId);
+        
+        input.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                // Validar tamaño de archivo (máximo 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('La imagen es demasiado grande. El tamaño máximo es 5MB.');
+                    this.value = '';
+                    return;
+                }
+                
+                // Actualizar información del archivo
+                const fileName = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
+                const fileSize = (file.size / 1024).toFixed(1) + ' KB';
+                fileInfo.textContent = `${fileName} (${fileSize})`;
+                
+                // Crear vista previa
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Restablecer vista previa e información
+                preview.innerHTML = `<i class="fas fa-camera"></i><span>Foto ${index + 1}</span>`;
+                fileInfo.textContent = 'Sin archivo seleccionado';
+            }
+            
+            // Comprobar si todos los campos están completos
+            checkFormCompletion();
+        });
+    });
+    
+    // Función para comprobar si todos los campos están completos
+    function checkFormCompletion() {
+        let allFilesSelected = true;
+        fileInputs.forEach(input => {
+            if (!input.files[0]) {
+                allFilesSelected = false;
+            }
+        });
+        
+        submitBtn.disabled = !allFilesSelected;
+    }
+    
+    // Inicialización: deshabilitar botón hasta que se seleccionen todas las fotos
+    checkFormCompletion();
+    
+    // Manejo del envío del formulario
+    photoForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Mostrar spinner de carga
+        submitBtn.querySelector('.button-text').style.opacity = '0';
+        loadingSpinner.style.display = 'block';
+        submitBtn.disabled = true;
+        
+        try {
+            // Comprimir imágenes antes de enviar
+            const compressedFiles = await Promise.all(
+                Array.from(fileInputs).map(input => compressImage(input.files[0]))
+            );
+            
+            // Crear FormData con las imágenes comprimidas
+            const formData = new FormData();
+            compressedFiles.forEach((file, index) => {
+                formData.append(`photo${index + 1}`, file, `photo${index + 1}.jpg`);
+            });
+            
+            // Enviar al servidor
+            const response = await fetch('http://localhost:3000/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            // Procesar respuesta
+            const result = await response.json();
+            
+            // Mostrar resultado
+            responseContainer.className = 'response-container active response-success';
+            responseContainer.innerHTML = `
+                <p><strong>Resultado:</strong> ${result.message}</p>
+                <p>El análisis indica que tu planta de albahaca está ${result.healthy ? 'saludable' : 'no saludable'}.</p>
+                ${result.recommendations ? `<p><strong>Recomendaciones:</strong> ${result.recommendations}</p>` : ''}
+            `;
+            
+        } catch (error) {
+            console.error('Error:', error);
+            // Mostrar error
+            responseContainer.className = 'response-container active response-error';
+            responseContainer.innerHTML = `
+                <p><strong>Error:</strong> No se pudieron procesar las fotos.</p>
+                <p>Por favor, intenta de nuevo o verifica tu conexión a internet.</p>
+            `;
+        } finally {
+            // Ocultar spinner de carga
+            submitBtn.querySelector('.button-text').style.opacity = '1';
+            loadingSpinner.style.display = 'none';
+            submitBtn.disabled = false;
+            
+            // Desplazar a la respuesta
+            responseContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+    
+    // Función para comprimir imágenes
+    async function compressImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    // Calcular dimensiones manteniendo proporción
+                    let width = img.width;
+                    let height = img.height;
+                    const maxSize = 1024; // Tamaño máximo
+                    
+                    if (width > height && width > maxSize) {
+                        height = Math.round((height * maxSize) / width);
+                        width = maxSize;
+                    } else if (height > maxSize) {
+                        width = Math.round((width * maxSize) / height);
+                        height = maxSize;
+                    }
+                    
+                    // Crear canvas para compresión
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Convertir a Blob con calidad reducida
+                    canvas.toBlob(
+                        (blob) => {
+                            resolve(blob);
+                        },
+                        'image/jpeg',
+                        0.8 // Calidad (0-1)
+                    );
+                };
+            };
+        });
+    }
+    
+    // Añadir efecto para hacer los contenedores de subida de archivos clickeables
+    document.querySelectorAll('.upload-box').forEach((box, index) => {
+        box.addEventListener('click', function(e) {
+            if (e.target !== fileInputs[index]) {
+                fileInputs[index].click();
+            }
+        });
+    });
+    
+    // Guardar estado en localStorage para recuperar al recargar
+    window.addEventListener('beforeunload', saveFormState);
+    window.addEventListener('load', loadFormState);
+    
+    function saveFormState() {
+        const formState = {
+            useCamera: useCameraCheckbox.checked
+        };
+        localStorage.setItem('albahacaFormState', JSON.stringify(formState));
+    }
+    
+    function loadFormState() {
+        const savedState = localStorage.getItem('albahacaFormState');
+        if (savedState) {
+            const formState = JSON.parse(savedState);
+            useCameraCheckbox.checked = formState.useCamera;
+            
+            // Actualizar atributos según el estado cargado
+            if (!formState.useCamera) {
+                fileInputs.forEach(input => input.removeAttribute('capture'));
+            }
+        }
     }
 });

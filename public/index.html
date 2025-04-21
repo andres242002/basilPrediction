@@ -3,29 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Albahaca Saludable</title>
+    <title>Clasificador de Albahaca Saludable</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Clasificador de Albahaca</h1>
-        <p>Sube 3 fotos de tus plantas de albahaca o toma las fotos si estás en un dispositivo móvil.</p>
+        <header>
+            <h1><i class="fas fa-leaf"></i> Clasificador de Albahaca</h1>
+            <p class="subtitle">Analiza tus plantas con inteligencia artificial</p>
+        </header>
+
+        <div class="instructions">
+            <p><i class="fas fa-info-circle"></i> Sube 3 fotos distintas de tu planta de albahaca para determinar si está saludable.</p>
+        </div>
 
         <form id="photo-form">
-            <input type="file" id="photo1" accept="image/*" capture="camera" required>
-            <input type="file" id="photo2" accept="image/*" capture="camera" required>
-            <input type="file" id="photo3" accept="image/*" capture="camera" required>
-            <button type="submit">Enviar Fotos</button>
+            <div class="upload-container">
+                <div class="upload-box" id="upload-box-1">
+                    <div class="preview" id="preview-1">
+                        <i class="fas fa-camera"></i>
+                        <span>Foto 1</span>
+                    </div>
+                    <input type="file" id="photo1" accept="image/*" capture class="file-input" required>
+                    <div class="file-info" id="file-info-1">Sin archivo seleccionado</div>
+                </div>
+
+                <div class="upload-box" id="upload-box-2">
+                    <div class="preview" id="preview-2">
+                        <i class="fas fa-camera"></i>
+                        <span>Foto 2</span>
+                    </div>
+                    <input type="file" id="photo2" accept="image/*" capture class="file-input" required>
+                    <div class="file-info" id="file-info-2">Sin archivo seleccionado</div>
+                </div>
+
+                <div class="upload-box" id="upload-box-3">
+                    <div class="preview" id="preview-3">
+                        <i class="fas fa-camera"></i>
+                        <span>Foto 3</span>
+                    </div>
+                    <input type="file" id="photo3" accept="image/*" capture class="file-input" required>
+                    <div class="file-info" id="file-info-3">Sin archivo seleccionado</div>
+                </div>
+            </div>
+
+            <div class="capture-option">
+                <label>
+                    <input type="checkbox" id="use-camera" checked> 
+                    <span>Usar cámara en dispositivos móviles</span>
+                </label>
+            </div>
+
+            <button type="submit" id="submit-btn">
+                <span class="button-text">Analizar planta</span>
+                <div class="loading-spinner" id="loading-spinner"></div>
+            </button>
         </form>
 
-        <div id="response"></div>
+        <div id="response" class="response-container"></div>
+        
+        <div class="footer">
+            <p>Proyecto de Agentes Inteligentes &copy; 2025</p>
+        </div>
     </div>
 
     <script src="app.js"></script>
 </body>
 </html>
-
-
-
-
-

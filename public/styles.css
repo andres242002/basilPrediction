@@ -1,64 +1,296 @@
-/* Resetear márgenes y paddings */
+/* Variables y configuración base */
+:root {
+    --primary-color: #4CAF50;
+    --primary-dark: #388E3C;
+    --primary-light: #A5D6A7;
+    --secondary-color: #F1F8E9;
+    --text-color: #2E3B2F;
+    --text-light: #5D6E5E;
+    --error-color: #E57373;
+    --success-color: #81C784;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --border-radius: 12px;
+}
+
+/* Reset base */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Estilo para el body y la página */
+/* Estilos generales */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f7f9f7;
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px;
 }
 
 .container {
-    width: 80%;
-    max-width: 600px;
+    width: 95%;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 25px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--primary-light);
 }
 
 h1 {
-    font-size: 24px;
-    text-align: center;
-    margin-bottom: 20px;
+    color: var(--primary-dark);
+    font-size: 28px;
+    margin-bottom: 10px;
 }
 
-p {
+h1 i {
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+.subtitle {
+    color: var(--text-light);
     font-size: 16px;
+    font-weight: 300;
+}
+
+/* Instrucciones */
+.instructions {
+    background-color: var(--secondary-color);
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 25px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.instructions p {
+    font-size: 15px;
+}
+
+.instructions i {
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+/* Contenedor de uploads */
+.upload-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
     margin-bottom: 20px;
 }
 
-input[type="file"] {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    background: #f8f8f8;
-    border: 2px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-button {
-    width: 100%;
+.upload-box {
+    border: 2px dashed var(--primary-light);
+    border-radius: var(--border-radius);
     padding: 15px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 18px;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
     cursor: pointer;
 }
 
-button:hover {
-    background-color: #45a049;
+.upload-box:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(76, 175, 80, 0.05);
 }
 
-#response {
-    margin-top: 20px;
+.preview {
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    margin-bottom: 10px;
+}
+
+.preview i {
+    font-size: 36px;
+    margin-bottom: 10px;
+    color: var(--primary-light);
+}
+
+.preview img {
+    max-width: 100%;
+    max-height: 120px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.file-info {
+    font-size: 12px;
+    color: var(--text-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 5px;
+}
+
+/* Opciones de captura */
+.capture-option {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.capture-option label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+.capture-option input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+/* Botón */
+button {
+    width: 100%;
+    padding: 15px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+button:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.button-text {
+    transition: opacity 0.3s ease;
+}
+
+.loading-spinner {
+    display: none;
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Contenedor de respuesta */
+.response-container {
+    margin-top: 25px;
+    padding: 0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    max-height: 0;
+}
+
+.response-container.active {
+    padding: 20px;
+    border-radius: var(--border-radius);
+    max-height: 200px;
+}
+
+.response-success {
+    background-color: rgba(129, 199, 132, 0.2);
+    border-left: 4px solid var(--success-color);
+}
+
+.response-error {
+    background-color: rgba(229, 115, 115, 0.2);
+    border-left: 4px solid var(--error-color);
+}
+
+/* Footer */
+.footer {
+    margin-top: 30px;
     text-align: center;
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+/* Media queries para responsive design */
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        padding: 20px;
+    }
+    
+    h1 {
+        font-size: 24px;
+    }
+    
+    .upload-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .preview {
+        height: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 20px;
+    }
+    
+    .instructions p,
+    .capture-option label {
+        font-size: 13px;
+    }
+    
+    button {
+        padding: 12px;
+        font-size: 16px;
+    }
 }
