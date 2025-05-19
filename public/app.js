@@ -137,39 +137,77 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 console.log("Respuesta recibida:", result);
                 
-                // Mostrar el resultado parcial
-                const detection = result.detections[0];
-                console.log(detection.label)
-                const isHealthy = detection.label === "Healthy";
-                const confidence = (detection.confidence * 100).toFixed(1);
+                // Verificar que result.detections existe y tiene elementos
+                if (result.detections && result.detections.length > 0) {
+                    const detection = result.detections[0];
+                    
+                    // Verificar que detection tiene una propiedad label antes de usarla
+                    if (detection && detection.label) {
+                        console.log(detection.label);
+                        const isHealthy = detection.label === "Healthy";
+                        const confidence = (detection.confidence * 100).toFixed(1);
+                        
+                        responseContainer.innerHTML += `
+                            <div class="image-result ${isHealthy ? 'healthy' : 'unhealthy'}">
+                                <h3>Imagen ${i + 1}: ${detection.label}</h3>
+                                <p>Confianza: ${confidence}%</p>
+                                ${result.image_base64 ? `<img src="data:image/jpeg;base64,${result.image_base64}" alt="Imagen analizada ${i+1}" class="result-image">` : ''}
+                            </div>
+                        `;
+                    } else {
+                        // Manejo para cuando detection no tiene label
+                        responseContainer.innerHTML += `
+                            <div class="image-result error">
+                                <h3>Imagen ${i + 1}: Error en detección</h3>
+                                <p>No se pudo determinar el estado de la planta.</p>
+                                ${result.image_base64 ? `<img src="data:image/jpeg;base64,${result.image_base64}" alt="Imagen analizada ${i+1}" class="result-image">` : ''}
+                            </div>
+                        `;
+                        console.error('Detección sin etiqueta:', detection);
+                    }
+                } else {
+                    // Manejo para cuando no hay detecciones
+                    responseContainer.innerHTML += `
+                        <div class="image-result error">
+                            <h3>Imagen ${i + 1}: Sin detecciones</h3>
+                            <p>El sistema no pudo realizar una detección en esta imagen.</p>
+                            ${result.image_base64 ? `<img src="data:image/jpeg;base64,${result.image_base64}" alt="Imagen analizada ${i+1}" class="result-image">` : ''}
+                        </div>
+                    `;
+                    console.error('Respuesta sin detecciones:', result);
+                }
+            }
+            
+            // Solo analizar resultados si tenemos detecciones válidas
+            if (results.length > 0 && results.every(result => result.detections && result.detections.length > 0)) {
+                // Analizar resultados para obtener conclusión general
+                const totalHealthy = results.filter(result => 
+                    result.detections[0] && result.detections[0].label === "Healthy"
+                ).length;
                 
+                const isGenerallyHealthy = totalHealthy >= 2; // Si al menos 2 de 3 son saludables
+                
+                // Mostrar conclusión general
                 responseContainer.innerHTML += `
-                    <div class="image-result ${isHealthy ? 'healthy' : 'unhealthy'}">
-                        <h3>Imagen ${i + 1}: ${detection.label}</h3>
-                        <p>Confianza: ${confidence}%</p>
-                        ${result.image_base64 ? `<img src="data:image/jpeg;base64,${result.image_base64}" alt="Imagen analizada ${i+1}" class="result-image">` : ''}
+                    <div class="conclusion ${isGenerallyHealthy ? 'response-success' : 'response-error'}">
+                        <h3>Conclusión:</h3>
+                        <p>El análisis indica que tu planta de albahaca está ${isGenerallyHealthy ? 'mayormente saludable' : 'posiblemente enferma'}.</p>
+                        ${isGenerallyHealthy 
+                            ? '<p><strong>Recomendaciones:</strong> Continúa con tu rutina actual de cuidados.</p>' 
+                            : '<p><strong>Recomendaciones:</strong> Revisa el riego, la exposición solar y asegúrate de que no tenga plagas. Considera aplicar un tratamiento orgánico preventivo.</p>'
+                        }
+                    </div>
+                `;
+            } else {
+                // Si no hay detecciones válidas, mostrar un mensaje genérico
+                responseContainer.innerHTML += `
+                    <div class="conclusion response-warning">
+                        <h3>No se pudo completar el análisis</h3>
+                        <p>No se obtuvieron suficientes datos para realizar un diagnóstico completo.</p>
+                        <p>Por favor, intenta tomar fotos más claras de las hojas de tu planta y asegúrate de que la iluminación sea adecuada.</p>
                     </div>
                 `;
             }
-            
-            // Analizar resultados para obtener conclusión general
-            const totalHealthy = results.filter(result => 
-                result.detections[0].label === "Healthy"
-            ).length;
-            
-            const isGenerallyHealthy = totalHealthy >= 2; // Si al menos 2 de 3 son saludables
-            
-            // Mostrar conclusión general
-            responseContainer.innerHTML += `
-                <div class="conclusion ${isGenerallyHealthy ? 'response-success' : 'response-error'}">
-                    <h3>Conclusión:</h3>
-                    <p>El análisis indica que tu planta de albahaca está ${isGenerallyHealthy ? 'mayormente saludable' : 'posiblemente enferma'}.</p>
-                    ${isGenerallyHealthy 
-                        ? '<p><strong>Recomendaciones:</strong> Continúa con tu rutina actual de cuidados.</p>' 
-                        : '<p><strong>Recomendaciones:</strong> Revisa el riego, la exposición solar y asegúrate de que no tenga plagas. Considera aplicar un tratamiento orgánico preventivo.</p>'
-                    }
-                </div>
-            `;
             
         } catch (error) {
             console.error('Error:', error);
@@ -262,7 +300,9 @@ document.addEventListener('DOMContentLoaded', function() {
             useCameraCheckbox.checked = formState.useCamera;
             
             // Actualizar atributos según el estado cargado
-            if (!formState.useCamera) {
+            if (formState.useCamera && isMobile) {
+                fileInputs.forEach(input => input.setAttribute('capture', 'camera'));
+            } else {
                 fileInputs.forEach(input => input.removeAttribute('capture'));
             }
         }
