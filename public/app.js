@@ -138,8 +138,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("Respuesta recibida:", result);
                 
                 // Mostrar el resultado parcial
-                console.log(detection.label)
                 const detection = result.detections[0];
+                console.log(detection.label)
                 const isHealthy = detection.label === "Healthy";
                 const confidence = (detection.confidence * 100).toFixed(1);
                 
