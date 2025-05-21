@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Verificar que detection tiene una propiedad label antes de usarla
                     if (detection && detection.label) {
                         console.log(detection.label);
-                        const isHealthy = detection.label === "Healthy";
+                        const isHealthy = detection.label === "healthy";
                         const confidence = (detection.confidence * 100).toFixed(1);
                         
                         responseContainer.innerHTML += `
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (results.length > 0 && results.every(result => result.detections && result.detections.length > 0)) {
                 // Analizar resultados para obtener conclusión general
                 const totalHealthy = results.filter(result => 
-                    result.detections[0] && result.detections[0].label === "Healthy"
+                    result.detections[0] && result.detections[0].label === "healthy"
                 ).length;
                 
                 const isGenerallyHealthy = totalHealthy >= 2; // Si al menos 2 de 3 son saludables
